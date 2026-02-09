@@ -6,15 +6,6 @@
 # Temporary files
 /tmp
 
-# Static artifacts
-/node_modules
-/assets/node_modules
-
-# Since we are building assets from web/static,
-# we ignore priv/static. You may want to comment
-# this depending on your deployment strategy.
-/priv/static/
-
 # Installer-related files
 /installer/_build
 /installer/tmp
@@ -23,17 +14,6 @@
 
 
 ## Zig
-# This file is for zig-specific build artifacts.
-# If you have OS-specific or editor-specific files to ignore,
-# such as *.swp or .DS_Store, put those in your global
-# ~/.gitignore and put this in your ~/.gitconfig:
-#
-# [core]
-#     excludesfile = ~/.gitignore
-#
-# Cheers!
-# -andrewrk
-
 .zig-cache/
 zig-out/
 /release/
