@@ -2,13 +2,10 @@ import Config
 
 # Configure your database
 config :fec_server, FecServer.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  database: "fec_server_dev",
+  database: Path.expand("../fec_server_dev.db", __DIR__),
+  pool_size: 5,
   stacktrace: true,
-  show_sensitive_data_on_connection_error: true,
-  pool_size: 10
+  show_sensitive_data_on_connection_error: true
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
@@ -23,11 +20,8 @@ config :fec_server, FecServerWeb.Endpoint,
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base: "oPyBTeYU/9cPX/N+D4UyWCvZ9ahhf9XumIF6c3rB+62CL4KuVeVUEQtXlcqZB61f",
-  watchers: [
-    esbuild: {Esbuild, :install_and_run, [:fec_server, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:fec_server, ~w(--watch)]}
-  ]
+  secret_key_base: "qVAj7C/j56H+hcUAHSV8hKMveYe64UWvQpcqfBbQI7snhjnAjECSNK4J84Vd1qJN",
+  watchers: []
 
 # ## SSL Support
 #
@@ -52,17 +46,6 @@ config :fec_server, FecServerWeb.Endpoint,
 # configured to run both http and https servers on
 # different ports.
 
-# Watch static and templates for browser reloading.
-config :fec_server, FecServerWeb.Endpoint,
-  live_reload: [
-    web_console_logger: true,
-    patterns: [
-      ~r"priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
-      ~r"priv/gettext/.*(po)$",
-      ~r"lib/fec_server_web/(?:controllers|live|components|router)/?.*\.(ex|heex)$"
-    ]
-  ]
-
 # Enable dev routes for dashboard and mailbox
 config :fec_server, dev_routes: true
 
@@ -75,14 +58,6 @@ config :phoenix, :stacktrace_depth, 20
 
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
-
-config :phoenix_live_view,
-  # Include debug annotations and locations in rendered markup.
-  # Changing this configuration will require mix clean and a full recompile.
-  debug_heex_annotations: true,
-  debug_attributes: true,
-  # Enable helpful, but potentially expensive runtime checks
-  enable_expensive_runtime_checks: true
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
