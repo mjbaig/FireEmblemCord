@@ -4,6 +4,7 @@ defmodule Server.Router do
   plug(:match)
   plug(:dispatch)
 
+  # this listens at port 4000 by default
   get "/ws" do
     WebSockAdapter.upgrade(conn, Server.WebsocketHandler, [], [])
   end

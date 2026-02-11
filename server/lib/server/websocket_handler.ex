@@ -1,19 +1,19 @@
 defmodule Server.WebsocketHandler do
   def init(_args) do
-    {:ok, %{client_id: make_ref()}}
+    {:ok, %{accountId: nil}}
   end
 
-  def handle_in({msg, _opts}, state) do
-    case Jason.decode(msg) do
+  def handle_in({message, _opts}, state) do
+    case Jason.decode(message) do
+      {:ok, %{"type" => "auth", "accountId" => accountId}} ->
+        handle_auth(accountId, state)
+
       {:ok, data} ->
-        Server.MessageStore.store_message(data)
-        Server.ClientRegistry.broadcast(data)
+        handle_client_message(data, state)
 
       _ ->
-        :ok
+        {:ok, state}
     end
-
-    {:ok, state}
   end
 
   def handle_info({:broadcast, data}, state) do
@@ -21,20 +21,42 @@ defmodule Server.WebsocketHandler do
   end
 
   def handle_connect(_conn, state) do
-    Server.ClientRegistry.register(self())
+    {:ok, state}
+  end
 
-    # Send all stored messages to new client
-
-    Server.MessageStore.get_messages()
-    |> Enum.each(fn message ->
-      send(self(), {:broadcast, message})
-    end)
+  def handle_disconnect(_reason, %{accountId: accountId} = state) do
+    if accountId do
+      Server.ClientRegistry.unregister(accountId, self())
+    end
 
     {:ok, state}
   end
 
-  def handle_disconnect(_reason, state) do
-    Server.ClientRegistry.unregister(self())
+  defp handle_auth(accountId, state) do
+    # register connection to user
+    # TODO actually auth the user lol
+    Server.ClientRegistry.register(accountId, self())
+
+    send_unseen_messages(accountId)
+
+    {:ok, %{state | account: accountId}}
+  end
+
+  defp handle_client_message(data, %{accountId: accountId} = state) do
+    data = Map.put(data, "accountId", accountId)
+
+    Server.MessageStore.store_message(data)
+
+    Server.ClientRegistry.broadcast_global(data)
+
     {:ok, state}
+  end
+
+  # TODO
+  defp send_unseen_messages(lastSeenId) do
+    Server.MessageStore.get_messages_after(lastSeenId)
+    |> Enum.each(fn message ->
+      send(self(), {:broadcast, message})
+    end)
   end
 end
