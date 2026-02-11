@@ -42,7 +42,7 @@ defmodule Server.WebsocketHandler do
     {:ok, %{state | account: accountId}}
   end
 
-  defp handle_client_message(data, %{accountId: accountId} = state) do
+  def handle_client_message(data, %{accountId: accountId} = state) do
     data = Map.put(data, "accountId", accountId)
 
     Server.MessageStore.store_message(data)
@@ -53,7 +53,7 @@ defmodule Server.WebsocketHandler do
   end
 
   # TODO
-  defp send_unseen_messages(lastSeenId) do
+  def send_unseen_messages(lastSeenId) do
     Server.MessageStore.get_messages_after(lastSeenId)
     |> Enum.each(fn message ->
       send(self(), {:broadcast, message})
