@@ -18,8 +18,25 @@ defmodule Server.Impl.AuthTest do
     assert user.username == "test"
   end
 
-  test "test that creating a user doesn't work if values are nil" do
-    user = Auth.signup(nil, nil, "password")
+  test "test that creating a user doesn't work if username is nil" do
+    # null contraint throws error
+    assert_raise Postgrex.Error, fn ->
+      user = Auth.signup(nil, "email", "password")
+    end
+  end
+
+  test "test that creating a user doesn't work if email is nil" do
+    # null contraint throws error
+    assert_raise Postgrex.Error, fn ->
+      user = Auth.signup("username", nil, "password")
+    end
+  end
+
+  test "test that creating a user doesn't work if password is nil" do
+    # This throws an argument error because the password is hashed before being written
+    assert_raise ArgumentError, fn ->
+      user = Auth.signup("username", "password", nil)
+    end
   end
 
   test "test that login works when user puts in the correct password" do
