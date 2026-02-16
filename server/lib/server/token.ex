@@ -2,7 +2,7 @@ defmodule Server.Token do
   alias Joken.Signer
   alias Joken
 
-  @secret Application.compile_env!(:server, :jwt_secret)
+  @secret Application.compile_env!(:server, :)
   @signer Signer.create("HS256", @secret)
 
   # generate a JWT

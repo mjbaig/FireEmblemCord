@@ -20,7 +20,6 @@ defmodule Server.Dao.Accounts.User do
 
     has_many(:roles, through: [:channel_memberships, :roles])
 
-    field(:username, :string)
     field(:email, :string)
     field(:password_hash, :string)
 
