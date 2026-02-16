@@ -16,6 +16,8 @@ defmodule Server.Router do
   plug(:match)
   plug(:dispatch)
 
+  alias Server.Impl.Auth
+
   # this listens at port 4000 by default
   get "/ws" do
     WebSockAdapter.upgrade(conn, Server.WebsocketHandler, [], [])
@@ -25,27 +27,22 @@ defmodule Server.Router do
     IO.inspect(conn.body_params)
     %{"username" => username, "email" => email, "password" => password} = conn.body_params
 
-    hash = Argon2.hash_pwd_salt(password)
+    Auth.signup(username, email, password)
 
+    # TODO verify email
+    # Add whitelist email cause I don't want randos
     send_resp(conn, 200, "signed up")
   end
 
   post "/login" do
     %{"email" => email, "password" => password} = conn.body_params
 
-    case Repo.get_by(Server.Dao.Accounts.User, email: email) do
-      nil ->
+    case Auth.login(email, password) do
+      {:unauthorized} ->
         send_resp(conn, 401, "invalid credentials homie")
 
-      user ->
-        if Argon2.verify_pass(password, user.password_hash) do
-          {:ok, token, _claims} =
-            Server.Token.generate_and_sign(%{"sub" => user.account_id})
-
-          send_json(conn, %{token: token})
-        else
-          send_resp(conn, 401, "invalid credentials homie")
-        end
+      {:authorized, token} ->
+        send_json(conn, %{token: token})
     end
   end
 
@@ -57,7 +54,7 @@ defmodule Server.Router do
     body = Jason.encode!(data)
 
     conn
-    |> Plug.Conn.put_resp_header("application/json")
+    |> Plug.Conn.put_resp_content_type("application/json")
     |> Plug.Conn.send_resp(200, body)
   end
 end
