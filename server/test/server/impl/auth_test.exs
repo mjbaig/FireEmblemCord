@@ -41,7 +41,7 @@ defmodule Server.Impl.AuthTest do
     {_, user} = Auth.signup("test", "password", "token")
     {status, token} = Auth.login("test", "password")
 
-    assert status == :authorized
+    assert status == :ok
     assert token != nil
 
     {status, claims} = Server.Token.verify_and_validate(token)
@@ -54,9 +54,10 @@ defmodule Server.Impl.AuthTest do
   test "test that login does not work when user puts in the incorrect password" do
     Server.Repo.insert(%SignupTokens{username: "test", value: "token"})
     Auth.signup("test", "password", "token")
-    {status} = Auth.login("test", "wrong")
+    {status, error} = Auth.login("test", "wrong")
 
-    assert status == :unauthorized
+    assert status == :error
+    assert error == :unauthorized
   end
 
   test "test that the same token cannot be used twice" do

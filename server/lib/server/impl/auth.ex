@@ -57,16 +57,16 @@ defmodule Server.Impl.Auth do
   def login(username, password) do
     case Repo.get_by(Server.Dao.Accounts.User, username: username) do
       nil ->
-        {:unauthorized}
+        {:error, :unauthorized}
 
       user ->
         if Argon2.verify_pass(password, user.password_hash) do
           {:ok, token, _claims} =
             Server.Token.generate_and_sign(%{"sub" => user.account_id})
 
-          {:authorized, token}
+          {:ok, token}
         else
-          {:unauthorized}
+          {:error, :unauthorized}
         end
     end
   end

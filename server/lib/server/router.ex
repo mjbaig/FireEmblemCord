@@ -24,26 +24,28 @@ defmodule Server.Router do
   end
 
   post "/signup" do
-    IO.inspect(conn.body_params)
-
     %{"username" => username, "password" => password, "signup_token" => signup_token} =
       conn.body_params
 
-    Auth.signup(username, password, signup_token)
+    response = Auth.signup(username, password, signup_token)
 
-    # TODO verify email
-    # Add whitelist email cause I don't want randos
-    send_resp(conn, 200, "signed up")
+    case response do
+      {:ok, _} ->
+        send_resp(conn, 200, "signed up")
+
+      {:error, _} ->
+        send_resp(conn, 401, "failed to sign up")
+    end
   end
 
   post "/login" do
     %{"username" => username, "password" => password} = conn.body_params
 
     case Auth.login(username, password) do
-      {:unauthorized} ->
+      {:error, :unauthorized} ->
         send_resp(conn, 401, "invalid credentials homie")
 
-      {:authorized, token} ->
+      {:ok, token} ->
         send_json(conn, %{token: token})
     end
   end
