@@ -62,7 +62,7 @@ defmodule Server.Impl.Auth do
       user ->
         if Argon2.verify_pass(password, user.password_hash) do
           {:ok, token, _claims} =
-            Server.Token.generate_and_sign(%{"sub" => user.account_id})
+            Server.Token.generate(user.account_id)
 
           {:ok, token}
         else

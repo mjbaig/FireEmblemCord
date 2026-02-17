@@ -2,21 +2,22 @@ defmodule Server.WebsocketHandler do
   alias Server.Impl.MessageStore
   alias Server.Impl.ClientRegistry
 
-  def init(_args) do
-    {:ok, %{accountId: nil}}
+  def init(%{accountId: accountId}) do
+    {:ok, %{accountId: accountId}}
   end
 
   def handle_in({message, _opts}, state) do
     case Jason.decode(message) do
-      {:ok, %{"type" => "auth", "accountId" => accountId}} ->
-        handle_auth(accountId, state)
-
-      {:ok, data} ->
-        handle_client_message(data, state)
+      {:ok, %{"type" => type} = data} ->
+        handle_action(type, data, state)
 
       _ ->
         {:ok, state}
     end
+  end
+
+  defp handle_action("ping", _, _) do
+    :ok
   end
 
   def handle_info({:broadcast, data}, state) do
@@ -33,16 +34,6 @@ defmodule Server.WebsocketHandler do
     end
 
     {:ok, state}
-  end
-
-  defp handle_auth(accountId, state) do
-    # register connection to user
-    # TODO actually auth the user lol
-    ClientRegistry.register(accountId, self())
-
-    send_unseen_messages(accountId)
-
-    {:ok, %{state | account: accountId}}
   end
 
   def handle_client_message(data, %{accountId: accountId} = state) do

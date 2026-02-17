@@ -2,7 +2,6 @@ defmodule Server.Impl.AuthTest do
   use ExUnit.Case, async: false
 
   alias Server.Dao.Accounts.SignupTokens
-  alias Hex.Repo
   alias Server.Impl.Auth
 
   setup do
@@ -32,7 +31,7 @@ defmodule Server.Impl.AuthTest do
     Server.Repo.insert(%SignupTokens{username: "test_nil", value: "token"})
     # This throws an argument error because the password is hashed before being written
     assert_raise ArgumentError, fn ->
-      {_, user} = Auth.signup("test_nil", nil, "token")
+      Auth.signup("test_nil", nil, "token")
     end
   end
 
@@ -48,7 +47,7 @@ defmodule Server.Impl.AuthTest do
 
     assert status == :ok
 
-    assert Map.get(claims, "sub") == user.account_id
+    assert Map.get(claims, "account_id") == user.account_id
   end
 
   test "test that login does not work when user puts in the incorrect password" do

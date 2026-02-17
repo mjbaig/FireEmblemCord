@@ -20,7 +20,27 @@ defmodule Server.Router do
 
   # this listens at port 4000 by default
   get "/ws" do
-    WebSockAdapter.upgrade(conn, Server.WebsocketHandler, [], [])
+    case conn.params["token"] do
+      nil ->
+        send_resp(conn, 401, "missing token")
+
+      token ->
+        verified_token = Server.Token.verify_and_extract_account_id(token)
+        IO.puts(verified_token)
+
+        case verified_token do
+          {:ok, account_id} ->
+            WebSockAdapter.upgrade(
+              conn,
+              Server.WebsocketHandler,
+              %{accountId: account_id},
+              []
+            )
+
+          {:error, _} ->
+            send_resp(conn, 401, "invalid token")
+        end
+    end
   end
 
   post "/signup" do

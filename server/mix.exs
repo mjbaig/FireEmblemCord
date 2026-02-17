@@ -28,7 +28,9 @@ defmodule Server.MixProject do
       {:ecto_sql, "~> 3.10"},
       {:postgrex, "~> 0.22.0"},
       {:argon2_elixir, "~> 4.1.3"},
-      {:joken, "~> 2.6"}
+      {:joken, "~> 2.6"},
+      # Test dependencies
+      {:websockex, "~> 0.5.1", only: :test}
     ]
   end
 end
