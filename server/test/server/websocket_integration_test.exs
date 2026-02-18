@@ -12,7 +12,7 @@ defmodule Server.WebsocketIntegrationTest do
   end
 
   def start_link(token, test_pid) do
-    WebSockex.start_link("ws://localhost:4000/ws?#{token}", __MODULE__, test_pid)
+    WebSockex.start_link("ws://localhost:4000/ws?token=#{token}", __MODULE__, test_pid)
   end
 
   test "responds to ping" do

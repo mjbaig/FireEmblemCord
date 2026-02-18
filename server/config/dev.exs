@@ -5,7 +5,7 @@ config :server, Server.Repo,
   username: "admin",
   password: "admin",
   hostname: "localhost",
-  show_sensitive_data_on_connection_error: true,
+  show_sensitive_data_on_connection_error: false,
   pool_size: 10
 
 config :joken, default_signer: "changethis"

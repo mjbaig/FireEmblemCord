@@ -26,7 +26,6 @@ defmodule Server.Router do
 
       token ->
         verified_token = Server.Token.verify_and_extract_account_id(token)
-        IO.puts(verified_token)
 
         case verified_token do
           {:ok, account_id} ->

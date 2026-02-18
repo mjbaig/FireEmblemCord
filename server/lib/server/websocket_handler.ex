@@ -16,8 +16,8 @@ defmodule Server.WebsocketHandler do
     end
   end
 
-  defp handle_action("ping", _, _) do
-    :ok
+  defp handle_action("ping", _, state) do
+    {:push, {:text, Jason.encode!(%{"test" => "pong"})}, state}
   end
 
   def handle_info({:broadcast, data}, state) do
