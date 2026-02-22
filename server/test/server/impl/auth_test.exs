@@ -5,8 +5,7 @@ defmodule Server.Impl.AuthTest do
   alias Server.Impl.Auth
 
   setup do
-    # Explicitly get a connection before each test
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Server.Repo)
+    Ecto.Adapters.SQL.Sandbox.checkout(Server.Repo)
   end
 
   test "test that creating a user works" do

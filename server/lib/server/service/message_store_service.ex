@@ -1,6 +1,6 @@
 # Caches most recent messages to memeory
 # Loads history at start up
-defmodule Server.Impl.MessageStore do
+defmodule Server.Service.MessageStoreService do
   import Ecto.Query
 
   use GenServer
@@ -59,8 +59,8 @@ defmodule Server.Impl.MessageStore do
       {:ok, _} ->
         {:reply, :ok, state}
 
-      {:error, _} ->
-        {:reply, :error, state}
+      {:error, reason} ->
+        {:reply, :error, reason, state}
     end
   end
 
@@ -75,7 +75,13 @@ defmodule Server.Impl.MessageStore do
       |> offset(^page * 20)
       |> Repo.all()
 
-    {:reply, messages, state}
+    case messages do
+      {:ok, _} ->
+        {:reply, messages, state}
+
+      {:error, reason} ->
+        {:reply, :error, reason, state}
+    end
   end
 
   def handle_call(:reset, _from, _state) do

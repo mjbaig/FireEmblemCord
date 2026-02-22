@@ -9,7 +9,7 @@ defmodule Server.Application do
   def start(_type, _args) do
     children = [
       Server.Impl.ClientRegistry,
-      Server.Impl.MessageStore,
+      Server.Service.MessageStoreService,
       Server.Repo,
       {Bandit, plug: Server.Router}
     ]
