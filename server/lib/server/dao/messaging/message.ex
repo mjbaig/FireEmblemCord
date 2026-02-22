@@ -7,7 +7,7 @@ defmodule Server.Dao.Messaging.Message do
 
   schema "messages" do
     field(:body, :string)
-    # JSONB if you want flexible extras
+
     field(:metadata, :map)
 
     belongs_to(:thread, Server.Dao.Messaging.Thread,

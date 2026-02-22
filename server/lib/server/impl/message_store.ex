@@ -1,9 +1,12 @@
 # Caches most recent messages to memeory
 # Loads history at start up
 defmodule Server.Impl.MessageStore do
+  import Ecto.Query
+
   use GenServer
 
-  @max_messages 1000
+  alias Server.Repo
+  alias Server.Dao.Messaging.Message
 
   # api
   def start_link(_) do
@@ -21,16 +24,16 @@ defmodule Server.Impl.MessageStore do
     GenServer.call(__MODULE__, :reset)
   end
 
-  def store_message(%{"accountId" => accountId, "content" => content}) do
-    GenServer.call(__MODULE__, {:store, accountId, content})
+  def store_message(%{"accountId" => account_id, "threadId" => thread_id, "body" => body}) do
+    GenServer.call(__MODULE__, {:store, account_id, thread_id, body})
   end
 
-  def get_all_messages do
-    GenServer.call(__MODULE__, :all)
-  end
-
-  def get_messages_after(id) do
-    GenServer.call(__MODULE__, {:after, id})
+  def get_messages_after(%{
+        "timestamp" => timestamp,
+        "threadId" => thread_id,
+        "page" => page
+      }) do
+    GenServer.call(__MODULE__, {:after, timestamp, thread_id, page})
   end
 
   # callbacks
@@ -41,36 +44,38 @@ defmodule Server.Impl.MessageStore do
   end
 
   @impl true
-  def handle_call({:store, accountId, content}, _from, state) do
-    message = %{
-      id: state.nextId,
-      accountId: accountId,
-      content: content,
-      insertedAt: DateTime.utc_now()
-    }
+  def handle_call({:store, account_id, thread_id, body}, _from, state) do
+    changeset =
+      Message.changeset(%Message{}, %{
+        body: body,
+        metadata: %{},
+        thread_id: thread_id,
+        creator_id: account_id
+      })
 
-    newState = %{
-      state
-      | messages:
-          (state.messages ++ [message])
-          |> Enum.take(-@max_messages),
-        nextId: state.nextId + 1
-    }
+    result = Repo.insert(changeset)
 
-    {:reply, message, newState}
+    case result do
+      {:ok, _} ->
+        {:reply, :ok, state}
+
+      {:error, _} ->
+        {:reply, :error, state}
+    end
   end
 
   @impl true
-  def handle_call({:after, id}, _from, state) do
+  def handle_call({:after, timestamp, thread_id, page}, _from, state) do
     messages =
-      state.messages
-      |> Enum.filter(fn m -> m.id > id end)
+      Message
+      |> where([m], m.thread_id == ^thread_id)
+      |> where([m], m.inserted_at > ^timestamp)
+      |> order_by([m], asc: m.inserted_at)
+      |> limit(20)
+      |> offset(^page * 20)
+      |> Repo.all()
 
     {:reply, messages, state}
-  end
-
-  def handle_call(:all, _from, state) do
-    {:reply, state.messages, state}
   end
 
   def handle_call(:reset, _from, _state) do
